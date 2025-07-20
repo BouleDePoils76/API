@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestion des utilisateurs</title>
+  <script>
+    async function chargerUtilisateurs() {
+      const res = await fetch('/api/users');
+      if (!res.ok) return alert('Accès refusé ou erreur');
+      const users = await res.json();
+      const tbody = document.getElementById('users');
+      tbody.innerHTML = '';
+      users.forEach(u => {
+        tbody.innerHTML += `<tr><td>${u.id}</td><td>${u.username}</td><td>${u.role}</td><td><button onclick="supprimer(${u.id})">Supprimer</button></td></tr>`;
+      });
+    }
+    async function ajouterUtilisateur() {
+      const username = document.getElementById('new_username').value;
+      const password = document.getElementById('new_password').value;
+      const role = document.getElementById('new_role').value;
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, role })
+      });
+      if (res.ok) chargerUtilisateurs();
+      else alert('Erreur lors de la création');
+    }
+    async function supprimer(id) {
+      if (!confirm('Supprimer cet utilisateur ?')) return;
+      const res = await fetch('/api/users/' + id, { method: 'DELETE' });
+      if (res.ok) chargerUtilisateurs();
+      else alert('Erreur lors de la suppression');
+    }
+    window.onload = chargerUtilisateurs;
+  </script>
+</head>
+<body>
+  <h2>Gestion des utilisateurs</h2>
+  <a href="/logout">Déconnexion</a>
+  <h3>Ajouter un utilisateur</h3>
+  <input id="new_username" placeholder="Nom d'utilisateur">
+  <input id="new_password" type="password" placeholder="Mot de passe">
+  <select id="new_role">
+    <option value="admin">Admin</option>
+    <option value="gerant">Gérant</option>
+    <option value="visiteur">Visiteur</option>
+  </select>
+  <button onclick="ajouterUtilisateur()">Ajouter</button>
+  <h3>Liste des utilisateurs</h3>
+  <table border="1">
+    <thead><tr><th>ID</th><th>Nom</th><th>Rôle</th><th>Action</th></tr></thead>
+    <tbody id="users"></tbody>
+  </table>
+</body>
+</html>
